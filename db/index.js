@@ -1,6 +1,7 @@
 const mysql = require('mysql')
 const { host, user, password, database } = require('./config')
 const { debug } = require('../utils/constant')
+const { isObject } = require('../utils')
 
 function connect() {
   return mysql.createConnection({
@@ -50,7 +51,100 @@ function queryOne(sql) {
   })
 }
 
+function insert(model, tableName) {
+  return new Promise((resolve, reject) => {
+    if (!isObject(model)) {
+      reject(new Error('传入的图书对象不合法'))
+    } else {
+      const keys = []
+      const values = []
+      Object.keys(model).forEach(key => {
+        if (model.hasOwnProperty(key)) {
+          keys.push(`\`${key}\``)
+          values.push(`'${model[key]}'`)
+        }
+      })
+      if (keys.length > 0 && values.length > 0) {
+        let sql = `INSERT INTO \`${tableName}\` (`
+        const keyString = keys.join(',')
+        const valuesString = values.join(',')
+        sql = `${sql}${keyString}) VALUES (${valuesString})`
+        console.log(sql)
+        const conn = connect()
+        try {
+          conn.query(sql, (err, result) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(result)
+            }
+          })
+        } catch (e) {
+          reject(e)
+        } finally {
+          conn.end()
+        }
+      } else {
+        reject(new Error('插入数据库失败，对象没有属性'))
+      }
+    }
+  })
+}
+
+function update(model, tableName, where) {
+  return new Promise((resolve, reject) => {
+    if (!isObject(model)) {
+      reject(new Error('插入数据库失败，插入数据非对象'))
+    } else {
+      const entry = []
+      Object.keys(model).forEach(key => {
+        if (model.hasOwnProperty(key)) {
+          entry.push(`\`${key}\`='${model[key]}'`)
+        }
+      })
+      if (entry.length > 0) {
+        let sql = `UPDATE \`${tableName}\` SET`
+        sql = `${sql} ${entry.join(',')} ${where}`
+        const conn = connect()
+        try {
+          conn.query(sql, (err, result) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(result)
+            }
+          })
+        } catch (e) {
+          reject(e)
+        } finally {
+          conn.end()
+        }
+      }
+    }
+  })
+}
+
+function and(where, k, v) {
+  if (where === 'where') {
+    return `${where} \`${k}\`='${v}'`
+  } else {
+    return `${where} and \`${k}\`='${v}'`
+  }
+}
+
+function andLike(where, k, v) {
+  if (where === 'where') {
+    return `${where} \`${k}\` like '%${v}%'`
+  } else {
+    return `${where} and \`${k}\` like '%${v}%'`
+  }
+}
+
 module.exports = {
   querySql,
-  queryOne
+  queryOne,
+  insert,
+  update,
+  and,
+  andLike
 }
