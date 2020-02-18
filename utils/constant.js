@@ -3,8 +3,8 @@ const UPLOAD_PATH = env === 'dev' ?
   'D:/nginx-1.17.8/upload/admin-upload-ebook' :
   '/root/upload/admin-upload-ebook'
 const OLD_UPLOAD_URL = env === 'dev' ?
-  'http://localhost:8089/book/res/img' :
-  'http://localhost:8089/book/res/img'
+  'http://book.youbaobao.xyz/book/res/img' :
+  'http://book.youbaobao.xyz/book/res/img'
 const UPLOAD_URL = env === 'dev' ?
   'http://localhost:8089/admin-upload-ebook' :
   'http://localhost:8089/admin-upload-ebook'
